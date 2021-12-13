@@ -5,6 +5,13 @@ use advent2021::find_filename;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let filename = find_filename(&args);
+
+    let mut days = 80;
+
+    if args.len() == 3 {
+        days = args[2].parse::<i32>().unwrap();
+    }
+
     let contents = fs::read_to_string(filename).expect("File error"); 
 
     let mut lines = contents.lines();
@@ -13,13 +20,13 @@ fn main() {
     for lf in initial {
         fish[lf as usize] += 1;
     }
-    for _i in 1..81 {
+    for _i in 1..days+1 {
         fish = breed_fish(fish);
     }
-    println!("{}: {} [{}, {} .. {}]", 80, sum_fish(&fish), fish[0], fish[1], fish[8]);
+    println!("{}: {} [{}, {} .. {}]", days, sum_fish(&fish), fish[0], fish[1], fish[8]);
 }
 
-fn sum_fish(fish: &[u32; 9]) -> u32 {
+fn sum_fish(fish: &[u64; 9]) -> u64 {
     let mut sum = 0;
     for f in fish {
         sum += f;
@@ -27,7 +34,7 @@ fn sum_fish(fish: &[u32; 9]) -> u32 {
     sum
 }
 
-fn breed_fish(mut fish: [u32; 9]) -> [u32; 9]{
+fn breed_fish(mut fish: [u64; 9]) -> [u64; 9]{
     let breeding = fish[0];
     for i in 0..8 {
         fish[i] = fish[i+1];
