@@ -60,6 +60,7 @@ struct Bingo {
 }
 
 impl Bingo {
+    #[allow(dead_code)]
     fn display(&self) {
         for i in 0..5 {
             println!("{:5}{:5}{:5}{:5}{:5}",
