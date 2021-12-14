@@ -21,3 +21,10 @@ fn parse_int(input: &str) -> Option<u32> {
             ch.to_digit(10).map(|b| acc.unwrap_or(0) * 10 + b)
         })
 }
+
+pub fn alphabetize(s: &str) -> String {
+    let mut chars: Vec<char> = s.chars().collect();
+    chars.sort();
+    chars.into_iter().collect::<String>()
+}
+

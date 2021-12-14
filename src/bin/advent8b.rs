@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::collections::HashSet;
 use advent2021::find_filename;
 
 fn main() {
@@ -19,25 +20,45 @@ fn main() {
 }
 
 fn decode_7segment(pat_str: &str, val_str: &str) -> u32 {
-    let mut sum = 0;
-    let patterns: Vec<String> = pat_str.split(' ').map(|x| alphabetize(x)).collect();
+    let mut sum: u32 = 0;
+    let patterns: Vec<HashSet<char>> = pat_str.split(' ').map(|x| x.chars().collect()).collect();
     let mut digits = [10; 10];
-    let values: Vec<String> = val_str.split(' ').map(|x| alphabetize(x)).collect();
-    for i in 0..=9 {
+    let values: Vec<HashSet<char>> = val_str.split(' ').map(|x| x.chars().collect()).collect();
+    for i in 0..=9 { // find 1478 and mark them
         match patterns[i].len() {
-            2 => digits[i] = 1,
-            4 => digits[i] = 4,
-            3 => digits[i] = 7,
-            7 => digits[i] = 8,
-            _ => print!("{} is unk ", i),
+            2 => digits[1] = i,
+            4 => digits[4] = i,
+            3 => digits[7] = i,
+            7 => digits[8] = i,
+            _ => (),
         }
     }
-    println!();
+    for i in 0..=9 {
+        if patterns[i].len() == 6 {                                                                       // 0,6,9
+            if patterns[digits[1]].intersection(&patterns[i]).collect::<Vec<&char>>().len() == 1 {        // 6
+                digits[6] = i;
+            } else if patterns[digits[4]].intersection(&patterns[i]).collect::<Vec<&char>>().len() == 4 { // 9
+                digits[9] = i;
+            } else {                                                                                      // 0
+                digits[0] = i;
+            }
+        } else if patterns[i].len() == 5 {                                                                // 2,3,5
+            if patterns[digits[1]].intersection(&patterns[i]).collect::<Vec<&char>>().len() == 2 {        // 3
+                digits[3] = i;
+            } else if patterns[digits[4]].intersection(&patterns[i]).collect::<Vec<&char>>().len() == 3 { // 5
+                digits[5] = i;
+            } else {                                                                                      // 2
+                digits[2] = i;
+            }
+        }
+    }
+    for v in values {
+        sum *= 10;
+        for i in 0..=9 {
+            if patterns[digits[i]] == v {
+                sum += i as u32;
+            }
+        }
+    }
     sum
-}
-
-fn alphabetize(s: &str) -> String {
-    let mut chars: Vec<char> = s.chars().collect();
-    chars.sort();
-    chars.into_iter().collect::<String>()
 }
