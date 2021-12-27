@@ -1,93 +1,110 @@
 use std::env;
 
+const PLAY_TO: usize = 21;
+
 // Each 'verse in the multiverse gets a 5-tuple:
 // (player1_position, player1_score, player2_position, player2_score, copies)
 // where copies is how many of this universe exist.
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut p1 = 3; // position 4 minus zero index
-    let mut p2 = 7;
+    let mut p1: usize = 3; // position 4 minus zero index
+    let mut p2: usize = 7;
     if args.len() >= 3 { 
-        p1 = &args[1].parse::<i32>().unwrap() -1;
-        p2 = &args[2].parse::<i32>().unwrap() -1;
+        p1 = &args[1].parse::<usize>().unwrap() -1;
+        p2 = &args[2].parse::<usize>().unwrap() -1;
     } 
 
-    let play_to = 21;
 
-    let mut wins = [0u128,0u128];
+    let mut wins = [0u128, 0u128];
 
-    let mut multiverse = Vec::new();
+    let mut metaverse = [[[[0u128; PLAY_TO]; PLAY_TO]; 10]; 10];
 
-    multiverse.push((p1, 0, p2, 0, 1u128));
+    // Create initial positions
+    metaverse[p1][p2][0][0] = 1;
+
     let mut player = 0;
     let mut roll = 0; // player's throw (1 of 3 per turn)
 
     loop { // loop over rolls, alternating players by player var
-        let mut new_verses = Vec::new();
-        for i in 0..multiverse.len() {
-            if multiverse[i].4 < 1 { continue; } // don't talk to uninstantiated verses.
-            for schism in 1..=3 { // apply quantum universe splitting
-                // copy the verse
-                //let mut newverse = (verse.0, verse.1, verse.2, verse.3, verse.4);
-                let mut newverse = multiverse[i];
-                // score the player's roll
-                if player == 0 {
-                    newverse.0 = (newverse.0 + schism) % 10;
-                } else {
-                    newverse.2 = (newverse.2 + schism) % 10;
-                }
-                
-                let mut found = false;
-                for j in 0..multiverse.len() { // does this new verse (copy) exist in multiverse?
-                    if multiverse[j].0 == newverse.0 &&
-                       multiverse[j].1 == newverse.1 &&
-                       multiverse[j].2 == newverse.2 &&
-                       multiverse[j].3 == newverse.3 {
-                           //     yes: increment that verse's copies
-                           multiverse[j].4 += newverse.4;
-                           found = true;
-                       }
-                }
-                if !found { //     no: push copy
-                    new_verses.push(newverse)
+        // make move
+        let mut new_metaverse = [[[[0u128; PLAY_TO]; PLAY_TO]; 10]; 10];
+        for p1 in 0..10 {
+            for p2 in 0..10 {
+                for s1 in 0..PLAY_TO {
+                    for s2 in 0..PLAY_TO {
+                        if metaverse[p1][p2][s1][s2] > 0 { 
+                            for die in 1..=3 { // apply quantum universe splitting
+                                // apply the player's roll
+                                let mut new_coords = [p1, p2];
+                                new_coords[player] = (new_coords[player] + die) % 10;
+                                // add starting verse's count to new coords
+                                new_metaverse[new_coords[0]][new_coords[1]][s1][s2] +=
+                                    metaverse[p1][p2][s1][s2];
+                            }
+                        }
+                    }
                 }
             }
-            //delete old verse;
-            multiverse[i].4 = 0;
         }
-        // append in new verses
-        println!("player {}, roll {}: univ {} new verses {}", player + 1, roll, multiverse.len(), new_verses.len());
-        multiverse.append(&mut new_verses);
-        roll += 1;
-        if roll > 2 { // After 3 rolls score and switch player
-            for i in 0..multiverse.len() { // are there any winners?
-                if multiverse[i].4 == 0 { continue; }
-                if player == 0 {
-                    multiverse[i].1 += multiverse[i].0;
-                } else {
-                    multiverse[i].3 += multiverse[i].2;
-                }
-                if multiverse[i].1 >= play_to { // player1 wins these verses
-                    wins[0] += multiverse[i].4;
-                    multiverse[i].4 = 0; // delete the winners
-                } else if multiverse[i].3 >= play_to { // player2 wins these verses
-                    wins[1] += multiverse[i].4;
-                    multiverse[i].4 = 0; // delete the winners
+        metaverse = new_metaverse;
+        print!("Player {}, Roll {}", player + 1, roll);
+        if roll == 2 { // After 3 rolls score and switch player
+            for p1 in 0..10 {
+                for p2 in 0..10 {
+                    for s1 in (0..PLAY_TO).rev() {
+                        for s2 in (0..PLAY_TO).rev() {
+                            if metaverse[p1][p2][s1][s2] > 0 { 
+                                // Score players' rounds
+                                let coords = [p1, p2];
+                                let mut new_scores = [s1,s2];
+                                new_scores[player] = new_scores[player] + coords[player] + 1;
+                                // Check for wins
+                                if new_scores[player] >= PLAY_TO { 
+                                    wins[player] += metaverse[p1][p2][s1][s2];
+                                } else {
+                                    // add starting verse's count to new coord/score points
+                                    metaverse[p1][p2][new_scores[0]][new_scores[1]] +=
+                                        metaverse[p1][p2][s1][s2];
+                                }
+                                // decrement starting verse
+                                metaverse[p1][p2][s1][s2] = 0;
+                            }
+                        }
+                    }
                 }
             }
             // Next player's turn
             roll = 0;
             player = (player + 1) % 2;
-            println!("p1 wins: {}, p2 wins: {}", wins[0], wins[1]);
+        } else { // Handle turn rotation
+            roll += 1;
         }
-        // clean up zeroed verses
-        multiverse = multiverse.into_iter().filter(|v| v.4 > 0).collect();
-        if multiverse.len() == 0 { break; }
+
+        let verses = count_verses(&metaverse);
+        println!(" Univ: {}; p1 wins: {}, p2 wins: {}", verses, wins[0], wins[1]);
+        if count_verses(&metaverse) == 0 { break; }
     }
     if wins[0] > wins[1] {
         println!("P1 won most at {} vs P2 {}", wins[0], wins[1]);
     } else {
         println!("P2 won most at {} vs P1 {}", wins[1], wins[0]);
     }
+}
+
+fn count_verses(metaverse: &[[[[u128; PLAY_TO]; PLAY_TO]; 10]; 10]) -> u128 {
+    let mut sum = 0u128;
+
+    for p1 in 0..10 {
+        for p2 in 0..10 {
+            for s1 in 0..PLAY_TO {
+                for s2 in 0..PLAY_TO {
+                    if metaverse[p1][p2][s1][s2] > 0 {
+                        sum += metaverse[p1][p2][s1][s2];
+                    }
+                }
+            }
+        }
+    }
+    sum
 }
 
