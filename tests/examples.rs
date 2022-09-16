@@ -9,107 +9,113 @@ type TestResult = Result<(), Box<dyn Error>>;
 struct TestDay {
     day: String,
     args: Vec<String>,
-    half: String
+    half: String,
+    bin: Option<String>,
 }
 
 // Day 1
 #[test]
-fn test1b() -> TestResult {
-    test_match_number("1", "b")
+fn day1b() -> TestResult {
+    TestDay::day("1").half("b").test_file().assert()
 }
 // Day 2
 #[test]
-fn test2a() -> TestResult {
-    test_match_number("2", "a")
+fn day2a() -> TestResult {
+    TestDay::day("2").half("a").test_file().assert()
 }
 #[test]
-fn test2b() -> TestResult {
-    test_match_number("2", "b")
+fn day2b() -> TestResult {
+    TestDay::day("2").half("b").test_file().assert()
 }
 // Day 3
 #[test]
-fn test3a() -> TestResult {
-    test_match_number("3", "a")
+fn day3a() -> TestResult {
+    TestDay::day("3").half("a").test_file().assert()
 }
 #[test]
-fn test3b() -> TestResult {
-    test_match_number("3", "b")
+fn day3b() -> TestResult {
+    TestDay::day("3").half("b").test_file().assert()
 }
 // Day 4
 #[test]
-fn test4a() -> TestResult {
-    test_match_number("4", "a")
+fn day4a() -> TestResult {
+    TestDay::day("4").half("a").test_file().assert()
 }
 #[test]
-fn test4b() -> TestResult {
-    test_match_number("4", "b")
+fn day4b() -> TestResult {
+    TestDay::day("4").half("b").test_file().assert()
 }
 // Day 5
 #[test]
-fn test5() -> TestResult {
-    test_match_number("5", "")
+fn day5() -> TestResult {
+    TestDay::day("5").half("").test_file().assert()
 }
 #[test]
-fn test5b() -> TestResult {
-    test_match_number("5", "b")
+fn day5b() -> TestResult {
+    TestDay::day("5").half("b").test_file().assert()
 }
 // Day 6
 #[test]
-fn test6() -> TestResult {
-    test_match_number_arg("6", "", "80")
+fn day6() -> TestResult {
+    TestDay::day("6").half("").test_file().arg("80").assert()
 }
 #[test]
-fn test6b() -> TestResult {
-    test_match_number_arg("6", "b", "256")
+fn day6b() -> TestResult {
+    TestDay::day("6")
+        .half("b")
+        .set_bin("advent6")
+        .test_file()
+        .arg("256")
+        .assert()
 }
 // Day 7
 #[test]
-fn test7() -> TestResult {
-    test_match_number("7", "")
+fn day7() -> TestResult {
+    TestDay::day("7").half("").test_file().assert()
 }
 #[test]
-fn test7b() -> TestResult {
-    test_match_number("7", "b")
+fn day7b() -> TestResult {
+    TestDay::day("7").half("b").test_file().assert()
 }
 // Day 8
 #[test]
-fn test8() -> TestResult {
-    test_match_number("8", "")
+fn day8() -> TestResult {
+    TestDay::day("8").half("").test_file().assert()
 }
 #[test]
-fn test8b() -> TestResult {
-    test_match_number("8", "b")
+fn day8b() -> TestResult {
+    TestDay::day("8").half("b").test_file().assert()
 }
 // Day 9
 #[test]
-fn test9() -> TestResult {
-    test_match_number("9", "")
+fn day9() -> TestResult {
+    TestDay::day("9").half("").test_file().assert()
 }
 #[test]
-fn test9b() -> TestResult {
-    test_match_number("9", "b")
+fn day9b() -> TestResult {
+    TestDay::day("9").half("b").test_file().assert()
 }
 // Day 10
 #[test]
-fn test10() -> TestResult {
-    test_match_number("10", "")
+fn day10() -> TestResult {
+    TestDay::day("10").half("").test_file().assert()
 }
 #[test]
-fn test10b() -> TestResult {
-    test_match_number("10", "b")
+fn day10b() -> TestResult {
+    TestDay::day("10").half("b").test_file().assert()
 }
 // Day 11
 #[test]
-fn test11() -> TestResult {
-    test_match_number("11", "")
+fn day11() -> TestResult {
+    TestDay::day("11").half("").test_file().assert()
 }
 #[test]
-fn test11b() -> TestResult {
-    test_match_number("11", "b")
+fn day11b() -> TestResult {
+    TestDay::day("11").half("b").test_file().assert()
 }
 // Day 21
 #[test]
-fn test21() -> TestResult {
+fn day21() -> TestResult {
     TestDay::day("21")
         .half("")
         .arg("4")
@@ -117,7 +123,7 @@ fn test21() -> TestResult {
         .assert()
 }
 #[test]
-fn test21b() -> TestResult {
+fn day21b() -> TestResult {
     TestDay::day("21")
         .half("b")
         .arg("4")
@@ -131,6 +137,7 @@ impl TestDay {
             day: day.to_string(),
             args: Vec::new(),
             half: String::from(""),
+            bin: None,
         }
     }
 
@@ -152,41 +159,26 @@ impl TestDay {
         self
     }
 
+    // set binary (default advent{day}{half}) (optional)
+    pub fn set_bin<'a>(&'a mut self, bin: &str) -> &'a mut TestDay {
+        self.bin = Some(bin.to_string());
+        self
+    }
+
     // Do the test run
     pub fn assert<'a>(&'a mut self) -> TestResult {
         let expected = fs::read_to_string(format!("tests/outputs/advent{}{}.out", self.day, self.half))?;
 
-        Command::cargo_bin(format!("advent{}{}", self.day, self.half))?
+        let bin = match &self.bin {
+            None    => format!("advent{}{}", self.day, self.half),
+            Some(b) => b.to_string(),
+        };
+
+        Command::cargo_bin(bin)?
             .args(&self.args)
             .assert()
             .stdout(predicate::str::contains(expected.trim_end()));
 
         Ok(())
     }
-}
-
-// Generic find number in output test
-fn test_match_number(day: &str, half: &str) -> TestResult {
-    let expected = fs::read_to_string(format!("tests/outputs/advent{}{}.out", day, half))?;
-    
-    Command::cargo_bin(format!("advent{}{}", day, half))?
-        .arg(format!("tests/inputs/test{}.dat", day))
-        .assert()
-        .stdout(predicate::str::contains(expected.trim_end()));
-
-    Ok(())
-}
-
-// Find number in output test with additional argument
-fn test_match_number_arg(day: &str, half: &str, arg: &str) -> TestResult {
-    // a test
-    let expected = fs::read_to_string(format!("tests/outputs/advent{}{}.out", day, half))?;
-    
-    Command::cargo_bin(format!("advent{}", day))?
-        .arg(format!("tests/inputs/test{}.dat", day))
-        .arg(arg)
-        .assert()
-        .stdout(predicate::str::contains(expected.trim_end()));
-
-    Ok(())
 }
