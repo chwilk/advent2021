@@ -3,14 +3,9 @@ use std::fs;
 use advent2021::find_filename;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let filename = find_filename(&args);
+    let filename = find_filename(env::args());
 
-    let mut days = 80;
-
-    if args.len() == 3 {
-        days = args[2].parse::<i32>().unwrap();
-    }
+    let days = 256;
 
     let contents = fs::read_to_string(filename).expect("File error"); 
 
@@ -20,10 +15,12 @@ fn main() {
     for lf in initial {
         fish[lf as usize] += 1;
     }
-    for _i in 1..days+1 {
+    for i in 1..days+1 {
         fish = breed_fish(fish);
+        if i == 80 || i == 256 {
+            println!("{}", sum_fish(&fish));
+        }
     }
-    println!("{}: {} [{}, {} .. {}]", days, sum_fish(&fish), fish[0], fish[1], fish[8]);
 }
 
 fn sum_fish(fish: &[u64; 9]) -> u64 {

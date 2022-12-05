@@ -15,8 +15,8 @@ struct TestDay {
 
 // Day 1
 #[test]
-fn day1b() -> TestResult {
-    TestDay::day("1").half("b").test_file().assert()
+fn day1() -> TestResult {
+    TestDay::day("1").half("").test_file().assert()
 }
 // Day 2
 #[test]
@@ -57,9 +57,9 @@ fn day5b() -> TestResult {
 // Day 6
 #[test]
 fn day6() -> TestResult {
-    TestDay::day("6").half("").test_file().arg("80").assert()
+    TestDay::day("6").half("").test_file().assert()
 }
-#[test]
+/*#[test]
 fn day6b() -> TestResult {
     TestDay::day("6")
         .half("b")
@@ -68,6 +68,7 @@ fn day6b() -> TestResult {
         .arg("256")
         .assert()
 }
+*/
 // Day 7
 #[test]
 fn day7() -> TestResult {
@@ -113,6 +114,15 @@ fn day11() -> TestResult {
 fn day11b() -> TestResult {
     TestDay::day("11").half("b").test_file().assert()
 }
+// Day 12
+#[test]
+//fn day12() -> TestResult {
+//    TestDay::day("12").half("").test_file().assert()
+//}
+// #[test]
+//fn day12b() -> TestResult {
+//    TestDay::day("12").half("b").test_file().assert()
+//}
 // Day 21
 #[test]
 fn day21() -> TestResult {

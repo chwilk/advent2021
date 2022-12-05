@@ -1,18 +1,19 @@
 //use std::error::Error;
 use std::format;
+use std::env;
 
-pub fn find_filename(args: &[String]) -> String {
+pub fn find_filename(mut args: env::Args) -> String {
     let filename: String;
     if args.len() < 2 { // Try to guess a test#.dat from binary name
-        let day = parse_int(&args[0]).unwrap();
-        filename = format!("test{}.dat", day);
+        let day = parse_int(args.nth(0).unwrap()).unwrap();
+        filename = format!("input{}.dat", day);
     } else {
-        filename = args[1].clone();
+        filename = args.nth(1).unwrap().clone();
     }
     filename
 }
 
-fn parse_int(input: &str) -> Option<u32> {
+fn parse_int(input: String) -> Option<u32> {
     input
         .chars()
         .skip_while(|ch| !ch.is_digit(10))

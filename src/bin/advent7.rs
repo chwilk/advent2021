@@ -3,8 +3,7 @@ use std::fs;
 use advent2021::find_filename;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let filename = find_filename(&args);
+    let filename = find_filename(env::args());
     let contents = fs::read_to_string(filename).expect("File error");
     let mut lines = contents.lines();
     let crabs: Vec<i32> = lines.next().unwrap().split(',').filter_map(|x| x.parse::<i32>().ok()).collect();

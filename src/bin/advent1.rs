@@ -1,10 +1,9 @@
 use std::env;
 use std::fs;
+use advent2021::find_filename;
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    let filename = &args[1];
+    let filename = find_filename(env::args());
 
     let contents = fs::read_to_string(filename).expect("File error");
 
